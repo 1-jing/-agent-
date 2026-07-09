@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>与龙芯板子的 WebSocket 通信</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        #log { margin-top: 20px; padding: 10px; background: #f4f4f4; border: 1px solid #ccc; height: 300px; overflow-y: scroll; }
+        button { padding: 5px 15px; margin-right: 10px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h2>💻 电脑端控制台</h2>
+    <input type="text" id="wsUrl" value="ws://192.168.57.112:8765" style="width: 250px;">
+    <button onclick="connect()">1. 连接板子</button>
+    <br><br>
+    <input type="text" id="msgInput" value="Hello Loongson 2K1000LA!" style="width: 250px;">
+    <button onclick="sendMessage()">2. 发送消息</button>
+    <button onclick="disconnect()">断开连接</button>
+
+    <div id="log"></div>
+
+    <script>
+        let ws;
+        const logDiv = document.getElementById("log");
+
+        function log(message) {
+            logDiv.innerHTML += `<div>${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight; // 自动滚动到底部
+        }
+
+        function connect() {
+            const url = document.getElementById("wsUrl").value;
+            ws = new WebSocket(url);
+
+            ws.onopen = () => log("🟢 成功连接到龙芯板子！");
+            ws.onmessage = (event) => log("🔵 收到板子回复: " + event.data);
+            ws.onclose = () => log("🔴 连接已关闭。");
+            ws.onerror = (error) => log("❌ 发生错误，请检查 IP 和板子服务端是否运行。");
+        }
+
+        function sendMessage() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                const msg = document.getElementById("msgInput").value;
+                ws.send(msg);
+                log("⬆️ 发送: " + msg);
+            } else {
+                log("⚠️ 请先连接板子！");
+            }
+        }
+
+        function disconnect() {
+            if (ws) ws.close();
+        }
+    </script>
+</body>
+</html>
